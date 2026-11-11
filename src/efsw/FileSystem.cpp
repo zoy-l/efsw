@@ -51,9 +51,25 @@ void FileSystem::dirAddSlashAtEnd( std::string& dir ) {
 }
 
 void FileSystem::dirRemoveSlashAtEnd( std::string& dir ) {
-	if ( dir.size() >= 1 && dir[dir.size() - 1] == getOSSlash() ) {
-		dir.erase( dir.size() - 1 );
-	}
+	const size_t length = dir.size();
+	if ( length <= 1 || dir[length - 1] != getOSSlash() )
+		return;
+
+#if EFSW_OS == EFSW_OS_WIN
+	// C: is drive-relative. Device roots such as \\?\C:\ and \\?\Volume{GUID}\ also need
+	// their trailing separator to keep naming the root directory.
+	const bool devicePath =
+		dir.compare( 0, 4, "\\\\?\\" ) == 0 || dir.compare( 0, 4, "\\\\.\\" ) == 0;
+	if ( ( length == 3 && dir[1] == ':' ) ||
+		 ( devicePath && dir.find_first_of( "/\\", 4 ) == length - 1 ) )
+		return;
+#else
+	// Exactly two leading slashes can have implementation-defined POSIX semantics.
+	if ( dir.find_first_not_of( '/' ) == std::string::npos )
+		return;
+#endif
+
+	dir.erase( length - 1 );
 }
 
 std::string FileSystem::fileNameFromPath( std::string filepath ) {

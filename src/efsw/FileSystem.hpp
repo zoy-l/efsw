@@ -19,6 +19,7 @@ class FileSystem {
 
 	static void dirAddSlashAtEnd( std::string& dir );
 
+	/// Removes one trailing native separator unless it is required by the root path.
 	static void dirRemoveSlashAtEnd( std::string& dir );
 
 	static std::string fileNameFromPath( std::string filepath );
